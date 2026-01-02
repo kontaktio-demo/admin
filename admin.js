@@ -1,5 +1,7 @@
 const API_BASE = "https://chatbot-backend-x2cy.onrender.com";
 
+console.log("Kontaktio Admin – API_BASE =", API_BASE);
+
 const loginView = document.getElementById("login-view");
 const panelView = document.getElementById("panel-view");
 const loginBtn = document.getElementById("login-btn");
@@ -86,6 +88,8 @@ async function handleLogin() {
   }
 
   try {
+    console.log("Logowanie do:", API_BASE + "/admin/login");
+
     const res = await fetch(API_BASE + "/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -93,6 +97,7 @@ async function handleLogin() {
     });
 
     const data = await res.json().catch(() => ({}));
+    console.log("Odpowiedź z /admin/login:", res.status, data);
 
     if (!res.ok || !data.token) {
       loginError.textContent = data.error || "Nieprawidłowe hasło.";
@@ -104,6 +109,7 @@ async function handleLogin() {
     await loadClients();
     setView(true);
   } catch (e) {
+    console.error("Błąd logowania:", e);
     loginError.textContent = "Błąd logowania.";
   }
 }
@@ -363,8 +369,8 @@ addClientBtn.addEventListener("click", handleAddClient);
     await loadClients();
     setView(true);
   } catch (err) {
+    console.error("Autologin nieudany:", err);
     setToken(null);
     setView(false);
   }
 })();
-
