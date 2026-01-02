@@ -1,6 +1,6 @@
 const API_BASE = "https://chatbot-backend-x2cy.onrender.com";
 
-console.log("Kontaktio Admin – API_BASE =", API_BASE);
+/* ---------------- ELEMENTS ---------------- */
 
 const loginView = document.getElementById("login-view");
 const panelView = document.getElementById("panel-view");
@@ -42,20 +42,16 @@ function getToken() {
 
 function setToken(t) {
   token = t;
-  if (t) {
-    localStorage.setItem("kontaktio-admin-token", t);
-  } else {
-    localStorage.removeItem("kontaktio-admin-token");
-  }
+  if (t) localStorage.setItem("kontaktio-admin-token", t);
+  else localStorage.removeItem("kontaktio-admin-token");
 }
 
 async function api(path, options = {}) {
   const t = getToken();
   const headers = options.headers || {};
+
   if (t) headers["Authorization"] = "Bearer " + t;
-  if (!(options.body instanceof FormData)) {
-    headers["Content-Type"] = "application/json";
-  }
+  if (!(options.body instanceof FormData)) headers["Content-Type"] = "application/json";
 
   const res = await fetch(API_BASE + path, {
     method: options.method || "GET",
@@ -67,16 +63,10 @@ async function api(path, options = {}) {
       : undefined
   });
 
-  if (res.status === 401 || res.status === 403) {
-    throw new Error("unauthorized");
-  }
+  if (res.status === 401 || res.status === 403) throw new Error("unauthorized");
 
   const data = await res.json().catch(() => ({}));
-
-  if (!res.ok) {
-    const msg = data.error || "Błąd serwera";
-    throw new Error(msg);
-  }
+  if (!res.ok) throw new Error(data.error || "Błąd serwera");
 
   return data;
 }
@@ -107,7 +97,7 @@ async function handleLogin() {
     passwordInput.value = "";
     await loadClients();
     setView(true);
-  } catch (e) {
+  } catch {
     loginError.textContent = "Błąd logowania.";
   }
 }
@@ -117,6 +107,7 @@ async function handleLogin() {
 async function loadClients() {
   try {
     const data = await api("/admin/clients");
+    console.log("ADMIN: /admin/clients =", data);
     clients = data || {};
     renderClientsList();
   } catch (e) {
@@ -129,8 +120,7 @@ function renderClientsList() {
   const entries = Object.entries(clients);
 
   if (!entries.length) {
-    clientsListEl.innerHTML =
-      '<li><span>Brak klientów</span><small></small></li>';
+    clientsListEl.innerHTML = "<li><span>Brak klientów</span></li>";
     return;
   }
 
@@ -174,8 +164,7 @@ function fillClientForm(id) {
   document.getElementById("company-hours").value = cfg.company?.hours || "";
 
   document.getElementById("client-status").value = cfg.status || "active";
-  document.getElementById("client-status-message").value =
-    cfg.statusMessage || "";
+  document.getElementById("client-status-message").value = cfg.statusMessage || "";
 
   document.getElementById("temperature").value = cfg.temperature ?? 0.4;
   document.getElementById("max-tokens").value = cfg.maxTokens ?? 300;
@@ -205,7 +194,7 @@ function getClientFormData() {
       name: document.getElementById("company-name").value.trim(),
       email: document.getElementById("company-email").value.trim(),
       phone: document.getElementById("company-phone").value.trim(),
-      address: document.getElementById("company-address").value.trim(),
+      address: document.getgetElementById("company-address").value.trim(),
       hours: document.getElementById("company-hours").value.trim()
     },
     status: document.getElementById("client-status").value,
@@ -220,4 +209,195 @@ function getClientFormData() {
       userBubbleBg: document.getElementById("theme-user-bubble-bg").value,
       userBubbleText: document.getElementById("theme-user-bubble-text").value,
       botBubbleBg: document.getElementById("theme-bot-bubble-bg").value,
-      botBubbleText: document.getElementById("theme
+      botBubbleText: document.getElementById("theme-bot-bubble-text").value,
+      widgetBg: document.getElementById("theme-widget-bg").value,
+      inputBg: document.getElementById("theme-input-bg").value,
+      inputText: document.getElementById("theme-input-text").value,
+      buttonBg: document.getElementById("theme-button-bg").value,
+      buttonText: document.getElementById("theme-button-text").value,
+      radius: parseInt(document.getElementById("theme-radius").value, 10),
+      position: document.getElementById("theme-position").value
+    }
+  };
+}
+
+function showClientForm(id) {
+  emptyState.style.display = "none";
+  clientForm.classList.add("tab-content", "active");
+  fillClientForm(id);
+  saveStatus.textContent = "";
+}
+
+/* ---------------- SAVE / DELETE ---------------- */
+
+async function handleSaveClient(e) {
+  e.preventDefault();
+  if (!currentClientId) return;
+
+  saveStatus.textContent = "Zapisywanie...";
+  const payload = getClientFormData();
+
+  try {
+    const data = await api(`/admin/clients/${currentClientId}`, {
+      method: "PUT",
+      body: payload
+    });
+
+    clients[currentClientId] = data.client;
+    renderClientsList();
+    saveStatus.textContent = "Zapisano zmiany.";
+
+    updateWidgetPreview(currentClientId);
+
+    setTimeout(() => (saveStatus.textContent = ""), 2000);
+  } catch (err) {
+    saveStatus.textContent = "Błąd zapisu: " + err.message;
+  }
+}
+
+async function handleDeleteClient() {
+  if (!currentClientId) return;
+  if (!confirm(`Na pewno chcesz usunąć klienta "${currentClientId}"?`)) return;
+
+  try {
+    await api(`/admin/clients/${currentClientId}`, { method: "DELETE" });
+    delete clients[currentClientId];
+    currentClientId = null;
+    renderClientsList();
+    clientForm.classList.remove("active");
+    emptyState.style.display = "block";
+  } catch (err) {
+    alert("Błąd usuwania: " + err.message);
+  }
+}
+
+async function handleAddClient() {
+  const id = prompt("Podaj ID nowego klienta:");
+  if (!id) return;
+
+  try {
+    const data = await api("/admin/clients", {
+      method: "POST",
+      body: { id }
+    });
+
+    clients[id] = data.client;
+    currentClientId = id;
+    renderClientsList();
+    showClientForm(id);
+  } catch (err) {
+    alert("Błąd dodawania: " + err.message);
+  }
+}
+
+/* ---------------- STATS ---------------- */
+
+async function loadStats(clientId) {
+  statsContent.innerHTML = "Ładowanie...";
+
+  try {
+    const data = await api(`/admin/stats/${clientId}`);
+
+    statsContent.innerHTML = `
+      <div class="stat-card"><h3>Rozmowy</h3><p>${data.conversations || 0}</p></div>
+      <div class="stat-card"><h3>Wiadomości użytkowników</h3><p>${data.messagesUser || 0}</p></div>
+      <div class="stat-card"><h3>Wiadomości asystenta</h3><p>${data.messagesAssistant || 0}</p></div>
+      <div class="stat-card"><h3>Ostatnia aktywność</h3><p>${data.lastActivity || "—"}</p></div>
+    `;
+  } catch {
+    statsContent.innerHTML = "Błąd ładowania statystyk.";
+  }
+}
+
+/* ---------------- LOGS ---------------- */
+
+async function loadLogs(clientId) {
+  logsContent.innerHTML = "Ładowanie...";
+
+  try {
+    const data = await api(`/admin/logs/${clientId}`);
+
+    if (!data.length) {
+      logsContent.innerHTML = "<p>Brak logów.</p>";
+      return;
+    }
+
+    logsContent.innerHTML = data
+      .map(
+        (log) => `
+      <div class="log-entry ${log.role}">
+        <div class="log-meta">
+          <span>${log.role}</span>
+          <small>${log.createdAt}</small>
+        </div>
+        <div class="log-content">${log.content}</div>
+      </div>
+    `
+      )
+      .join("");
+  } catch {
+    logsContent.innerHTML = "Błąd ładowania logów.";
+  }
+}
+
+/* ---------------- PREVIEW ---------------- */
+
+function updateWidgetPreview(clientId) {
+  previewIframe.src = "preview.html?client=" + encodeURIComponent(clientId);
+}
+
+/* ---------------- TABS ---------------- */
+
+function activateTab(tab) {
+  document.querySelectorAll(".tab-button").forEach((b) => {
+    b.classList.toggle("active", b.dataset.tab === tab);
+  });
+
+  document.querySelectorAll(".tab-content").forEach((el) => {
+    el.classList.toggle("active", el.dataset.tab === tab);
+  });
+}
+
+document.querySelectorAll(".tab-button").forEach((btn) => {
+  btn.addEventListener("click", () => activateTab(btn.dataset.tab));
+});
+
+/* ---------------- LOGOUT ---------------- */
+
+function handleLogout() {
+  setToken(null);
+  currentClientId = null;
+  clients = {};
+  clientsListEl.innerHTML = "";
+  clientForm.classList.remove("active");
+  emptyState.style.display = "block";
+  setView(false);
+}
+
+/* ---------------- INIT ---------------- */
+
+loginBtn.addEventListener("click", handleLogin);
+passwordInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") handleLogin();
+});
+
+logoutBtn.addEventListener("click", handleLogout);
+
+clientForm.addEventListener("submit", handleSaveClient);
+deleteClientBtn.addEventListener("click", handleDeleteClient);
+addClientBtn.addEventListener("click", handleAddClient);
+
+(async function init() {
+  const t = getToken();
+  if (!t) {
+    setView(false);
+    return;
+  }
+  try {
+    await loadClients();
+    setView(true);
+  } catch {
+    setToken(null);
+    setView(false);
+  }
+})();
