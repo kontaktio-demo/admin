@@ -1,4 +1,4 @@
-const API_BASE = "https://chatbot-backend-x2cy.onrender.com"; 
+const API_BASE = "https://chatbot-backend-x2cy.onrender.com";
 
 const loginView = document.getElementById("login-view");
 const panelView = document.getElementById("panel-view");
@@ -86,7 +86,7 @@ async function handleLogin() {
   }
 
   try {
-    const res = await fetch("/admin/login", {
+    const res = await fetch(API_BASE + "/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password: pwd })
@@ -340,8 +340,6 @@ function handleLogout() {
   setView(false);
 }
 
-// Eventy
-
 loginBtn.addEventListener("click", handleLogin);
 passwordInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
@@ -354,8 +352,6 @@ logoutBtn.addEventListener("click", handleLogout);
 clientForm.addEventListener("submit", handleSaveClient);
 deleteClientBtn.addEventListener("click", handleDeleteClient);
 addClientBtn.addEventListener("click", handleAddClient);
-
-// Autologin jeśli token jest
 
 (async function init() {
   const t = getToken();
