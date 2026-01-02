@@ -42,15 +42,21 @@ function getToken() {
 
 function setToken(t) {
   token = t;
-  if (t) localStorage.setItem("kontaktio-admin-token", t);
-  else localStorage.removeItem("kontaktio-admin-token");
+  if (t) {
+    localStorage.setItem("kontaktio-admin-token", t);
+  } else {
+    localStorage.removeItem("kontaktio-admin-token");
+  }
 }
 
 async function api(path, options = {}) {
   const t = getToken();
   const headers = options.headers || {};
+
   if (t) headers["Authorization"] = "Bearer " + t;
-  if (!(options.body instanceof FormData)) headers["Content-Type"] = "application/json";
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
 
   const res = await fetch(API_BASE + path, {
     method: options.method || "GET",
@@ -63,10 +69,22 @@ async function api(path, options = {}) {
   });
 
   const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
+  let data = {};
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      console.error("API JSON parse error for", path, e, text);
+      throw new Error("Błąd parsowania odpowiedzi serwera");
+    }
+  }
 
-  if (res.status === 401 || res.status === 403) throw new Error("unauthorized");
-  if (!res.ok) throw new Error(data.error || "Błąd serwera");
+  if (res.status === 401 || res.status === 403) {
+    throw new Error("unauthorized");
+  }
+  if (!res.ok) {
+    throw new Error(data.error || "Błąd serwera");
+  }
 
   return data;
 }
@@ -133,7 +151,10 @@ function renderClientsList() {
     const name = cfg.company?.name || id;
     const status = cfg.status || "active";
 
-    li.innerHTML = `<span>${name}</span><small>${id} • ${status}</small>`;
+    li.innerHTML = `
+      <span>${name}</span>
+      <small>${id} • ${status}</small>
+    `;
 
     li.addEventListener("click", () => {
       currentClientId = id;
@@ -162,7 +183,8 @@ function fillClientForm(id) {
   document.getElementById("company-hours").value = cfg.company?.hours || "";
 
   document.getElementById("client-status").value = cfg.status || "active";
-  document.getElementById("client-status-message").value = cfg.statusMessage || "";
+  document.getElementById("client-status-message").value =
+    cfg.statusMessage || "";
 
   document.getElementById("temperature").value = cfg.temperature ?? 0.4;
   document.getElementById("max-tokens").value = cfg.maxTokens ?? 300;
@@ -171,17 +193,28 @@ function fillClientForm(id) {
   document.getElementById("rules").value = cfg.rules || "";
 
   const theme = cfg.theme || {};
-  document.getElementById("theme-header-bg").value = theme.headerBg || "#020617";
-  document.getElementById("theme-header-text").value = theme.headerText || "#e5e7eb";
-  document.getElementById("theme-user-bubble-bg").value = theme.userBubbleBg || "#0f172a";
-  document.getElementById("theme-user-bubble-text").value = theme.userBubbleText || "#e5e7eb";
-  document.getElementById("theme-bot-bubble-bg").value = theme.botBubbleBg || "#020617";
-  document.getElementById("theme-bot-bubble-text").value = theme.botBubbleText || "#94a3b8";
-  document.getElementById("theme-widget-bg").value = theme.widgetBg || "#020617";
-  document.getElementById("theme-input-bg").value = theme.inputBg || "#020617";
-  document.getElementById("theme-input-text").value = theme.inputText || "#e5e7eb";
-  document.getElementById("theme-button-bg").value = theme.buttonBg || "#7c3aed";
-  document.getElementById("theme-button-text").value = theme.buttonText || "#ffffff";
+  document.getElementById("theme-header-bg").value =
+    theme.headerBg || "#020617";
+  document.getElementById("theme-header-text").value =
+    theme.headerText || "#e5e7eb";
+  document.getElementById("theme-user-bubble-bg").value =
+    theme.userBubbleBg || "#0f172a";
+  document.getElementById("theme-user-bubble-text").value =
+    theme.userBubbleText || "#e5e7eb";
+  document.getElementById("theme-bot-bubble-bg").value =
+    theme.botBubbleBg || "#020617";
+  document.getElementById("theme-bot-bubble-text").value =
+    theme.botBubbleText || "#94a3b8";
+  document.getElementById("theme-widget-bg").value =
+    theme.widgetBg || "#020617";
+  document.getElementById("theme-input-bg").value =
+    theme.inputBg || "#020617";
+  document.getElementById("theme-input-text").value =
+    theme.inputText || "#e5e7eb";
+  document.getElementById("theme-button-bg").value =
+    theme.buttonBg || "#7c3aed";
+  document.getElementById("theme-button-text").value =
+    theme.buttonText || "#ffffff";
   document.getElementById("theme-radius").value = theme.radius ?? 22;
   document.getElementById("theme-position").value = theme.position || "right";
 }
@@ -196,12 +229,241 @@ function getClientFormData() {
       hours: document.getElementById("company-hours").value.trim()
     },
     status: document.getElementById("client-status").value,
-    statusMessage: document.getElementById("client-status-message").value.trim(),
+    statusMessage: document
+      .getElementById("client-status-message")
+      .value.trim(),
     temperature: parseFloat(document.getElementById("temperature").value),
-    maxTokens: parseInt(document.getElementById("max-tokens").value, 10),
+    maxTokens: parseInt(
+      document.getElementById("max-tokens").value,
+      10
+    ),
     knowledge: document.getElementById("knowledge").value,
     rules: document.getElementById("rules").value,
     theme: {
       headerBg: document.getElementById("theme-header-bg").value,
       headerText: document.getElementById("theme-header-text").value,
-      userBubbleBg: document.getElementById("theme-user
+      userBubbleBg: document.getElementById("theme-user-bubble-bg").value,
+      userBubbleText: document.getElementById("theme-user-bubble-text").value,
+      botBubbleBg: document.getElementById("theme-bot-bubble-bg").value,
+      botBubbleText: document.getElementById("theme-bot-bubble-text").value,
+      widgetBg: document.getElementById("theme-widget-bg").value,
+      inputBg: document.getElementById("theme-input-bg").value,
+      inputText: document.getElementById("theme-input-text").value,
+      buttonBg: document.getElementById("theme-button-bg").value,
+      buttonText: document.getElementById("theme-button-text").value,
+      radius: parseInt(
+        document.getElementById("theme-radius").value,
+        10
+      ),
+      position: document.getElementById("theme-position").value
+    }
+  };
+}
+
+function showClientForm(id) {
+  emptyState.style.display = "none";
+  clientForm.classList.add("tab-content", "active");
+  fillClientForm(id);
+  saveStatus.textContent = "";
+}
+
+/* ---------------- SAVE / DELETE ---------------- */
+
+async function handleSaveClient(e) {
+  e.preventDefault();
+  if (!currentClientId) return;
+
+  saveStatus.textContent = "Zapisywanie...";
+  const payload = getClientFormData();
+  console.log("SAVE payload:", payload);
+
+  try {
+    const data = await api(`/admin/clients/${currentClientId}`, {
+      method: "PUT",
+      body: payload
+    });
+
+    console.log("SAVE response:", data);
+
+    if (data && data.client) {
+      clients[currentClientId] = data.client;
+    }
+    renderClientsList();
+    saveStatus.textContent = "Zapisano zmiany.";
+
+    updateWidgetPreview(currentClientId);
+
+    setTimeout(() => {
+      saveStatus.textContent = "";
+    }, 2000);
+  } catch (err) {
+    console.error("SAVE ERROR:", err);
+    saveStatus.textContent = "Błąd zapisu: " + err.message;
+  }
+}
+
+async function handleDeleteClient() {
+  if (!currentClientId) return;
+  if (!confirm(`Na pewno chcesz usunąć klienta "${currentClientId}"?`)) return;
+
+  try {
+    await api(`/admin/clients/${currentClientId}`, { method: "DELETE" });
+    delete clients[currentClientId];
+    currentClientId = null;
+    renderClientsList();
+    clientForm.classList.remove("active");
+    emptyState.style.display = "block";
+  } catch (err) {
+    console.error("DELETE ERROR:", err);
+    alert("Błąd usuwania: " + err.message);
+  }
+}
+
+async function handleAddClient() {
+  const id = prompt("Podaj ID nowego klienta:");
+  if (!id) return;
+
+  try {
+    const data = await api("/admin/clients", {
+      method: "POST",
+      body: { id }
+    });
+
+    if (data && data.client) {
+      clients[id] = data.client;
+    }
+    currentClientId = id;
+    renderClientsList();
+    showClientForm(id);
+  } catch (err) {
+    console.error("ADD CLIENT ERROR:", err);
+    alert("Błąd dodawania: " + err.message);
+  }
+}
+
+/* ---------------- STATS ---------------- */
+
+async function loadStats(clientId) {
+  statsContent.innerHTML = "Ładowanie...";
+
+  try {
+    const data = await api(`/admin/stats/${clientId}`);
+
+    statsContent.innerHTML = `
+      <div class="stat-card">
+        <h3>Rozmowy</h3>
+        <p>${data.conversations || 0}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Wiadomości użytkowników</h3>
+        <p>${data.messagesUser || 0}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Wiadomości asystenta</h3>
+        <p>${data.messagesAssistant || 0}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Ostatnia aktywność</h3>
+        <p>${data.lastActivity || "—"}</p>
+      </div>
+    `;
+  } catch (err) {
+    console.error("STATS ERROR:", err);
+    statsContent.innerHTML = "Błąd ładowania statystyk.";
+  }
+}
+
+/* ---------------- LOGS ---------------- */
+
+async function loadLogs(clientId) {
+  logsContent.innerHTML = "Ładowanie...";
+
+  try {
+    const data = await api(`/admin/logs/${clientId}`);
+
+    if (!Array.isArray(data) || !data.length) {
+      logsContent.innerHTML = "<p>Brak logów.</p>";
+      return;
+    }
+
+    logsContent.innerHTML = data
+      .map(
+        (log) => `
+      <div class="log-entry ${log.role}">
+        <div class="log-meta">
+          <span>${log.role}</span>
+          <small>${log.createdAt}</small>
+        </div>
+        <div class="log-content">${log.content}</div>
+      </div>
+    `
+      )
+      .join("");
+  } catch (err) {
+    console.error("LOGS ERROR:", err);
+    logsContent.innerHTML = "Błąd ładowania logów.";
+  }
+}
+
+/* ---------------- PREVIEW ---------------- */
+
+function updateWidgetPreview(clientId) {
+  previewIframe.src = "preview.html?client=" + encodeURIComponent(clientId);
+}
+
+/* ---------------- TABS ---------------- */
+
+function activateTab(tab) {
+  document.querySelectorAll(".tab-button").forEach((b) => {
+    b.classList.toggle("active", b.dataset.tab === tab);
+  });
+
+  document.querySelectorAll(".tab-content").forEach((el) => {
+    el.classList.toggle("active", el.dataset.tab === tab);
+  });
+}
+
+document.querySelectorAll(".tab-button").forEach((btn) => {
+  btn.addEventListener("click", () => activateTab(btn.dataset.tab));
+});
+
+/* ---------------- LOGOUT ---------------- */
+
+function handleLogout() {
+  setToken(null);
+  currentClientId = null;
+  clients = {};
+  clientsListEl.innerHTML = "";
+  clientForm.classList.remove("active");
+  emptyState.style.display = "block";
+  setView(false);
+}
+
+/* ---------------- INIT ---------------- */
+
+loginBtn.addEventListener("click", handleLogin);
+passwordInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") handleLogin();
+});
+
+logoutBtn.addEventListener("click", handleLogout);
+
+clientForm.addEventListener("submit", handleSaveClient);
+deleteClientBtn.addEventListener("click", handleDeleteClient);
+addClientBtn.addEventListener("click", handleAddClient);
+
+(async function init() {
+  const t = getToken();
+  if (!t) {
+    setView(false);
+    return;
+  }
+  try {
+    await loadClients();
+    setView(true);
+  } catch (err) {
+    console.error("INIT ERROR:", err);
+    setToken(null);
+    setView(false);
+  }
+})();
