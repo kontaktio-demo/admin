@@ -29,8 +29,13 @@ let currentClientId = null;
 /* ---------------- AUTH ---------------- */
 
 function setView(isLoggedIn) {
-  loginView.classList.toggle("active", !isLoggedIn);
-  panelView.classList.toggle("active", isLoggedIn);
+  if (isLoggedIn) {
+    loginView.classList.remove("active");
+    panelView.classList.add("active");
+  } else {
+    loginView.classList.add("active");
+    panelView.classList.remove("active");
+  }
 }
 
 function getToken() {
@@ -52,7 +57,6 @@ function setToken(t) {
 async function api(path, options = {}) {
   const t = getToken();
   const headers = options.headers || {};
-
   if (t) headers["Authorization"] = "Bearer " + t;
   if (!(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
@@ -68,22 +72,15 @@ async function api(path, options = {}) {
       : undefined
   });
 
-  const text = await res.text();
-  let data = {};
-  if (text) {
-    try {
-      data = JSON.parse(text);
-    } catch (e) {
-      console.error("API JSON parse error for", path, e, text);
-      throw new Error("Błąd parsowania odpowiedzi serwera");
-    }
-  }
-
   if (res.status === 401 || res.status === 403) {
     throw new Error("unauthorized");
   }
+
+  const data = await res.json().catch(() => ({}));
+
   if (!res.ok) {
-    throw new Error(data.error || "Błąd serwera");
+    const msg = data.error || "Błąd serwera";
+    throw new Error(msg);
   }
 
   return data;
@@ -115,8 +112,7 @@ async function handleLogin() {
     passwordInput.value = "";
     await loadClients();
     setView(true);
-  } catch (err) {
-    console.error("LOGIN ERROR:", err);
+  } catch (e) {
     loginError.textContent = "Błąd logowania.";
   }
 }
@@ -129,7 +125,6 @@ async function loadClients() {
     clients = data || {};
     renderClientsList();
   } catch (e) {
-    console.error("LOAD CLIENTS ERROR:", e);
     alert("Nie udało się pobrać listy klientów. " + e.message);
   }
 }
@@ -139,7 +134,8 @@ function renderClientsList() {
   const entries = Object.entries(clients);
 
   if (!entries.length) {
-    clientsListEl.innerHTML = "<li><span>Brak klientów</span></li>";
+    clientsListEl.innerHTML =
+      '<li><span>Brak klientów</span><small></small></li>';
     return;
   }
 
@@ -163,7 +159,6 @@ function renderClientsList() {
       loadStats(id);
       loadLogs(id);
       updateWidgetPreview(id);
-      activateTab("settings");
     });
 
     clientsListEl.appendChild(li);
@@ -193,28 +188,17 @@ function fillClientForm(id) {
   document.getElementById("rules").value = cfg.rules || "";
 
   const theme = cfg.theme || {};
-  document.getElementById("theme-header-bg").value =
-    theme.headerBg || "#020617";
-  document.getElementById("theme-header-text").value =
-    theme.headerText || "#e5e7eb";
-  document.getElementById("theme-user-bubble-bg").value =
-    theme.userBubbleBg || "#0f172a";
-  document.getElementById("theme-user-bubble-text").value =
-    theme.userBubbleText || "#e5e7eb";
-  document.getElementById("theme-bot-bubble-bg").value =
-    theme.botBubbleBg || "#020617";
-  document.getElementById("theme-bot-bubble-text").value =
-    theme.botBubbleText || "#94a3b8";
-  document.getElementById("theme-widget-bg").value =
-    theme.widgetBg || "#020617";
-  document.getElementById("theme-input-bg").value =
-    theme.inputBg || "#020617";
-  document.getElementById("theme-input-text").value =
-    theme.inputText || "#e5e7eb";
-  document.getElementById("theme-button-bg").value =
-    theme.buttonBg || "#7c3aed";
-  document.getElementById("theme-button-text").value =
-    theme.buttonText || "#ffffff";
+  document.getElementById("theme-header-bg").value = theme.headerBg || "#020617";
+  document.getElementById("theme-header-text").value = theme.headerText || "#e5e7eb";
+  document.getElementById("theme-user-bubble-bg").value = theme.userBubbleBg || "#0f172a";
+  document.getElementById("theme-user-bubble-text").value = theme.userBubbleText || "#e5e7eb";
+  document.getElementById("theme-bot-bubble-bg").value = theme.botBubbleBg || "#020617";
+  document.getElementById("theme-bot-bubble-text").value = theme.botBubbleText || "#94a3b8";
+  document.getElementById("theme-widget-bg").value = theme.widgetBg || "#020617";
+  document.getElementById("theme-input-bg").value = theme.inputBg || "#020617";
+  document.getElementById("theme-input-text").value = theme.inputText || "#e5e7eb";
+  document.getElementById("theme-button-bg").value = theme.buttonBg || "#7c3aed";
+  document.getElementById("theme-button-text").value = theme.buttonText || "#ffffff";
   document.getElementById("theme-radius").value = theme.radius ?? 22;
   document.getElementById("theme-position").value = theme.position || "right";
 }
@@ -229,14 +213,9 @@ function getClientFormData() {
       hours: document.getElementById("company-hours").value.trim()
     },
     status: document.getElementById("client-status").value,
-    statusMessage: document
-      .getElementById("client-status-message")
-      .value.trim(),
+    statusMessage: document.getElementById("client-status-message").value.trim(),
     temperature: parseFloat(document.getElementById("temperature").value),
-    maxTokens: parseInt(
-      document.getElementById("max-tokens").value,
-      10
-    ),
+    maxTokens: parseInt(document.getElementById("max-tokens").value, 10),
     knowledge: document.getElementById("knowledge").value,
     rules: document.getElementById("rules").value,
     theme: {
@@ -251,10 +230,7 @@ function getClientFormData() {
       inputText: document.getElementById("theme-input-text").value,
       buttonBg: document.getElementById("theme-button-bg").value,
       buttonText: document.getElementById("theme-button-text").value,
-      radius: parseInt(
-        document.getElementById("theme-radius").value,
-        10
-      ),
+      radius: parseInt(document.getElementById("theme-radius").value, 10),
       position: document.getElementById("theme-position").value
     }
   };
@@ -262,7 +238,7 @@ function getClientFormData() {
 
 function showClientForm(id) {
   emptyState.style.display = "none";
-  clientForm.classList.add("tab-content", "active");
+  clientForm.classList.add("active");
   fillClientForm(id);
   saveStatus.textContent = "";
 }
@@ -275,7 +251,6 @@ async function handleSaveClient(e) {
 
   saveStatus.textContent = "Zapisywanie...";
   const payload = getClientFormData();
-  console.log("SAVE payload:", payload);
 
   try {
     const data = await api(`/admin/clients/${currentClientId}`, {
@@ -283,11 +258,7 @@ async function handleSaveClient(e) {
       body: payload
     });
 
-    console.log("SAVE response:", data);
-
-    if (data && data.client) {
-      clients[currentClientId] = data.client;
-    }
+    clients[currentClientId] = data.client;
     renderClientsList();
     saveStatus.textContent = "Zapisano zmiany.";
 
@@ -297,7 +268,6 @@ async function handleSaveClient(e) {
       saveStatus.textContent = "";
     }, 2000);
   } catch (err) {
-    console.error("SAVE ERROR:", err);
     saveStatus.textContent = "Błąd zapisu: " + err.message;
   }
 }
@@ -314,7 +284,6 @@ async function handleDeleteClient() {
     clientForm.classList.remove("active");
     emptyState.style.display = "block";
   } catch (err) {
-    console.error("DELETE ERROR:", err);
     alert("Błąd usuwania: " + err.message);
   }
 }
@@ -329,14 +298,11 @@ async function handleAddClient() {
       body: { id }
     });
 
-    if (data && data.client) {
-      clients[id] = data.client;
-    }
+    clients[id] = data.client;
     currentClientId = id;
     renderClientsList();
     showClientForm(id);
   } catch (err) {
-    console.error("ADD CLIENT ERROR:", err);
     alert("Błąd dodawania: " + err.message);
   }
 }
@@ -368,7 +334,6 @@ async function loadStats(clientId) {
       </div>
     `;
   } catch (err) {
-    console.error("STATS ERROR:", err);
     statsContent.innerHTML = "Błąd ładowania statystyk.";
   }
 }
@@ -381,7 +346,7 @@ async function loadLogs(clientId) {
   try {
     const data = await api(`/admin/logs/${clientId}`);
 
-    if (!Array.isArray(data) || !data.length) {
+    if (!data.length) {
       logsContent.innerHTML = "<p>Brak logów.</p>";
       return;
     }
@@ -400,7 +365,6 @@ async function loadLogs(clientId) {
       )
       .join("");
   } catch (err) {
-    console.error("LOGS ERROR:", err);
     logsContent.innerHTML = "Błąd ładowania logów.";
   }
 }
@@ -413,18 +377,22 @@ function updateWidgetPreview(clientId) {
 
 /* ---------------- TABS ---------------- */
 
-function activateTab(tab) {
-  document.querySelectorAll(".tab-button").forEach((b) => {
-    b.classList.toggle("active", b.dataset.tab === tab);
-  });
-
-  document.querySelectorAll(".tab-content").forEach((el) => {
-    el.classList.toggle("active", el.dataset.tab === tab);
-  });
-}
-
 document.querySelectorAll(".tab-button").forEach((btn) => {
-  btn.addEventListener("click", () => activateTab(btn.dataset.tab));
+  btn.addEventListener("click", () => {
+    document
+      .querySelectorAll(".tab-button")
+      .forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const tab = btn.dataset.tab;
+
+    document
+      .querySelectorAll(".tab-content")
+      .forEach((el) => el.classList.remove("active"));
+
+    const target = document.querySelector(`.tab-content[data-tab="${tab}"]`);
+    if (target) target.classList.add("active");
+  });
 });
 
 /* ---------------- LOGOUT ---------------- */
@@ -462,8 +430,8 @@ addClientBtn.addEventListener("click", handleAddClient);
     await loadClients();
     setView(true);
   } catch (err) {
-    console.error("INIT ERROR:", err);
     setToken(null);
     setView(false);
   }
 })();
+
