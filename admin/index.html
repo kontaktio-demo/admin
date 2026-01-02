@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kontaktio Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="login-view" class="view active">
+        <div class="card">
+          <h1>Kontaktio Admin</h1>
+          <p class="subtitle">Panel zarządzania klientami</p>
+          <label class="field">
+            <span>Hasło administratora</span>
+            <input type="password" id="admin-password" />
+          </label>
+          <button id="login-btn" class="primary">Zaloguj</button>
+          <p id="login-error" class="error"></p>
+        </div>
+      </div>
+
+      <div id="panel-view" class="view">
+        <header class="topbar">
+          <div>
+            <h1>Kontaktio Admin</h1>
+            <p class="subtitle">Zarządzanie klientami i statusami</p>
+          </div>
+          <div class="topbar-right">
+            <span id="admin-status">Zalogowano</span>
+            <button id="logout-btn" class="ghost">Wyloguj</button>
+          </div>
+        </header>
+
+        <main class="layout">
+          <aside class="sidebar">
+            <div class="sidebar-header">
+              <h2>Klienci</h2>
+              <button id="add-client-btn">+</button>
+            </div>
+            <ul id="clients-list"></ul>
+          </aside>
+
+          <section class="content">
+            <div id="empty-state" class="empty">
+              Wybierz klienta z listy po lewej, aby edytować jego ustawienia.
+            </div>
+
+            <form id="client-form" class="client-form hidden">
+              <div class="form-header">
+                <h2 id="client-id-label"></h2>
+                <button
+                  type="button"
+                  id="delete-client-btn"
+                  class="danger-outline"
+                >
+                  Usuń klienta
+                </button>
+              </div>
+
+              <div class="grid two">
+                <div class="field">
+                  <span>Nazwa firmy</span>
+                  <input type="text" id="company-name" />
+                </div>
+                <div class="field">
+                  <span>Email</span>
+                  <input type="email" id="company-email" />
+                </div>
+                <div class="field">
+                  <span>Telefon</span>
+                  <input type="text" id="company-phone" />
+                </div>
+                <div class="field">
+                  <span>Adres</span>
+                  <input type="text" id="company-address" />
+                </div>
+                <div class="field">
+                  <span>Godziny otwarcia</span>
+                  <input type="text" id="company-hours" />
+                </div>
+              </div>
+
+              <div class="grid two">
+                <div class="field">
+                  <span>Status</span>
+                  <select id="client-status">
+                    <option value="active">active</option>
+                    <option value="unactive">unactive</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <span>Komunikat statusu</span>
+                  <input type="text" id="client-status-message" />
+                </div>
+              </div>
+
+              <div class="grid two">
+                <div class="field">
+                  <span>Temperature</span>
+                  <input
+                    type="number"
+                    step="0.05"
+                    min="0"
+                    max="1"
+                    id="temperature"
+                  />
+                </div>
+                <div class="field">
+                  <span>maxTokens</span>
+                  <input type="number" id="max-tokens" />
+                </div>
+              </div>
+
+              <div class="field">
+                <span>Knowledge</span>
+                <textarea id="knowledge" rows="6"></textarea>
+              </div>
+
+              <div class="field">
+                <span>Rules</span>
+                <textarea id="rules" rows="4"></textarea>
+              </div>
+
+              <h3>Schemat kolorów</h3>
+              <div class="grid three">
+                <div class="field">
+                  <span>Header BG</span>
+                  <input type="color" id="theme-header-bg" />
+                </div>
+                <div class="field">
+                  <span>Header Text</span>
+                  <input type="color" id="theme-header-text" />
+                </div>
+                <div class="field">
+                  <span>User Bubble BG</span>
+                  <input type="color" id="theme-user-bubble-bg" />
+                </div>
+                <div class="field">
+                  <span>User Bubble Text</span>
+                  <input type="color" id="theme-user-bubble-text" />
+                </div>
+                <div class="field">
+                  <span>Bot Bubble BG</span>
+                  <input type="color" id="theme-bot-bubble-bg" />
+                </div>
+                <div class="field">
+                  <span>Bot Bubble Text</span>
+                  <input type="color" id="theme-bot-bubble-text" />
+                </div>
+                <div class="field">
+                  <span>Widget BG</span>
+                  <input type="color" id="theme-widget-bg" />
+                </div>
+                <div class="field">
+                  <span>Input BG</span>
+                  <input type="color" id="theme-input-bg" />
+                </div>
+                <div class="field">
+                  <span>Input Text</span>
+                  <input type="color" id="theme-input-text" />
+                </div>
+                <div class="field">
+                  <span>Button BG</span>
+                  <input type="color" id="theme-button-bg" />
+                </div>
+                <div class="field">
+                  <span>Button Text</span>
+                  <input type="color" id="theme-button-text" />
+                </div>
+                <div class="field">
+                  <span>Radius</span>
+                  <input type="number" id="theme-radius" />
+                </div>
+              </div>
+
+              <div class="field">
+                <span>Pozycja widgetu</span>
+                <select id="theme-position">
+                  <option value="right">right</option>
+                  <option value="left">left</option>
+                </select>
+              </div>
+
+              <div class="form-footer">
+                <button type="submit" class="primary">Zapisz zmiany</button>
+                <span id="save-status" class="muted"></span>
+              </div>
+            </form>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <script src="admin.js"></script>
+  </body>
+</html>
