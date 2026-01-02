@@ -371,3 +371,4 @@ addClientBtn.addEventListener("click", handleAddClient);
     setView(false);
   }
 })();
+
