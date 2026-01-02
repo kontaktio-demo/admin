@@ -4,19 +4,23 @@
     <meta charset="UTF-8" />
     <title>Kontaktio Admin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="admin.css"/>
+    <link rel="stylesheet" href="admin.css" />
   </head>
+
   <body>
     <div id="app">
+
       <!-- LOGIN VIEW -->
       <div id="login-view" class="view active">
         <div class="card">
           <h1>Kontaktio Admin</h1>
           <p class="subtitle">Panel zarządzania klientami</p>
+
           <label class="field">
             <span>Hasło administratora</span>
             <input type="password" id="admin-password" />
           </label>
+
           <button id="login-btn" class="primary">Zaloguj</button>
           <p id="login-error" class="error"></p>
         </div>
@@ -24,24 +28,30 @@
 
       <!-- PANEL VIEW -->
       <div id="panel-view" class="view">
+
+        <!-- TOPBAR -->
         <header class="topbar">
           <div>
             <h1>Kontaktio Admin</h1>
             <p class="subtitle">Zarządzanie klientami i statystykami</p>
           </div>
+
           <div class="topbar-right">
             <span id="admin-status">Zalogowano</span>
             <button id="logout-btn" class="ghost">Wyloguj</button>
           </div>
         </header>
 
+        <!-- MAIN LAYOUT -->
         <main class="layout">
+
           <!-- SIDEBAR -->
           <aside class="sidebar">
             <div class="sidebar-header">
               <h2>Klienci</h2>
               <button id="add-client-btn">+</button>
             </div>
+
             <ul id="clients-list"></ul>
           </aside>
 
@@ -84,6 +94,7 @@
                     <option value="unactive">unactive</option>
                   </select>
                 </div>
+
                 <div class="field">
                   <span>Komunikat statusu</span>
                   <input type="text" id="client-status-message" />
@@ -99,6 +110,7 @@
               <div class="field"><span>Rules</span><textarea id="rules" rows="4"></textarea></div>
 
               <h3>Schemat kolorów</h3>
+
               <div class="grid three">
                 <div class="field"><span>Header BG</span><input type="color" id="theme-header-bg" /></div>
                 <div class="field"><span>Header Text</span><input type="color" id="theme-header-text" /></div>
