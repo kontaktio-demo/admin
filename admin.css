@@ -17,7 +17,7 @@ input, select, textarea, button {
   font-size: 14px;
   border: none;
   outline: none;
-  background: #1e293b;
+  background: #1e294b;
   color: #e5e7eb;
   border-radius: 6px;
   padding: 6px 10px;
@@ -331,5 +331,6 @@ button.danger-outline {
   height: 100%;
   border: none;
 }
+
 
 
