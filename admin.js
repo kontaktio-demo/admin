@@ -18,13 +18,8 @@ const clientIdLabel = document.getElementById("client-id-label");
 const deleteClientBtn = document.getElementById("delete-client-btn");
 const saveStatus = document.getElementById("save-status");
 
-const statsTab = document.getElementById("stats-tab");
 const statsContent = document.getElementById("stats-content");
-
-const logsTab = document.getElementById("logs-tab");
 const logsContent = document.getElementById("logs-content");
-
-const previewTab = document.getElementById("preview-tab");
 const previewIframe = document.getElementById("widget-preview");
 
 let token = null;
@@ -34,13 +29,8 @@ let currentClientId = null;
 /* ---------------- AUTH ---------------- */
 
 function setView(isLoggedIn) {
-  if (isLoggedIn) {
-    loginView.classList.remove("active");
-    panelView.classList.add("active");
-  } else {
-    loginView.classList.add("active");
-    panelView.classList.remove("active");
-  }
+  loginView.classList.toggle("active", !isLoggedIn);
+  panelView.classList.toggle("active", isLoggedIn);
 }
 
 function getToken() {
@@ -164,6 +154,7 @@ function renderClientsList() {
       loadStats(id);
       loadLogs(id);
       updateWidgetPreview(id);
+      activateTab("settings");
     });
 
     clientsListEl.appendChild(li);
@@ -229,216 +220,4 @@ function getClientFormData() {
       userBubbleBg: document.getElementById("theme-user-bubble-bg").value,
       userBubbleText: document.getElementById("theme-user-bubble-text").value,
       botBubbleBg: document.getElementById("theme-bot-bubble-bg").value,
-      botBubbleText: document.getElementById("theme-bot-bubble-text").value,
-      widgetBg: document.getElementById("theme-widget-bg").value,
-      inputBg: document.getElementById("theme-input-bg").value,
-      inputText: document.getElementById("theme-input-text").value,
-      buttonBg: document.getElementById("theme-button-bg").value,
-      buttonText: document.getElementById("theme-button-text").value,
-      radius: parseInt(document.getElementById("theme-radius").value, 10),
-      position: document.getElementById("theme-position").value
-    }
-  };
-}
-
-function showClientForm(id) {
-  emptyState.style.display = "none";
-  clientForm.classList.add("active");
-  fillClientForm(id);
-  saveStatus.textContent = "";
-}
-
-/* ---------------- SAVE / DELETE ---------------- */
-
-async function handleSaveClient(e) {
-  e.preventDefault();
-  if (!currentClientId) return;
-
-  saveStatus.textContent = "Zapisywanie...";
-  const payload = getClientFormData();
-
-  try {
-    const data = await api(`/admin/clients/${currentClientId}`, {
-      method: "PUT",
-      body: payload
-    });
-
-    clients[currentClientId] = data.client;
-    renderClientsList();
-    saveStatus.textContent = "Zapisano zmiany.";
-
-    updateWidgetPreview(currentClientId);
-
-    setTimeout(() => {
-      saveStatus.textContent = "";
-    }, 2000);
-  } catch (err) {
-    saveStatus.textContent = "Błąd zapisu: " + err.message;
-  }
-}
-
-async function handleDeleteClient() {
-  if (!currentClientId) return;
-  if (!confirm(`Na pewno chcesz usunąć klienta "${currentClientId}"?`)) return;
-
-  try {
-    await api(`/admin/clients/${currentClientId}`, { method: "DELETE" });
-    delete clients[currentClientId];
-    currentClientId = null;
-    renderClientsList();
-    clientForm.classList.remove("active");
-    emptyState.style.display = "block";
-  } catch (err) {
-    alert("Błąd usuwania: " + err.message);
-  }
-}
-
-async function handleAddClient() {
-  const id = prompt("Podaj ID nowego klienta:");
-  if (!id) return;
-
-  try {
-    const data = await api("/admin/clients", {
-      method: "POST",
-      body: { id }
-    });
-
-    clients[id] = data.client;
-    currentClientId = id;
-    renderClientsList();
-    showClientForm(id);
-  } catch (err) {
-    alert("Błąd dodawania: " + err.message);
-  }
-}
-
-/* ---------------- STATS ---------------- */
-
-async function loadStats(clientId) {
-  statsContent.innerHTML = "Ładowanie...";
-
-  try {
-    const data = await api(`/admin/stats/${clientId}`);
-
-    statsContent.innerHTML = `
-      <div class="stat-card">
-        <h3>Rozmowy</h3>
-        <p>${data.conversations || 0}</p>
-      </div>
-      <div class="stat-card">
-        <h3>Wiadomości użytkowników</h3>
-        <p>${data.messagesUser || 0}</p>
-      </div>
-      <div class="stat-card">
-        <h3>Wiadomości asystenta</h3>
-        <p>${data.messagesAssistant || 0}</p>
-      </div>
-      <div class="stat-card">
-        <h3>Ostatnia aktywność</h3>
-        <p>${data.lastActivity || "—"}</p>
-      </div>
-    `;
-  } catch (err) {
-    statsContent.innerHTML = "Błąd ładowania statystyk.";
-  }
-}
-
-/* ---------------- LOGS ---------------- */
-
-async function loadLogs(clientId) {
-  logsContent.innerHTML = "Ładowanie...";
-
-  try {
-    const data = await api(`/admin/logs/${clientId}`);
-
-    if (!data.length) {
-      logsContent.innerHTML = "<p>Brak logów.</p>";
-      return;
-    }
-
-    logsContent.innerHTML = data
-      .map(
-        (log) => `
-      <div class="log-entry ${log.role}">
-        <div class="log-meta">
-          <span>${log.role}</span>
-          <small>${log.createdAt}</small>
-        </div>
-        <div class="log-content">${log.content}</div>
-      </div>
-    `
-      )
-      .join("");
-  } catch (err) {
-    logsContent.innerHTML = "Błąd ładowania logów.";
-  }
-}
-
-/* ---------------- PREVIEW ---------------- */
-
-function updateWidgetPreview(clientId) {
-  previewIframe.src =
-    "preview.html?client=" + encodeURIComponent(clientId);
-}
-
-/* ---------------- TABS ---------------- */
-
-document.querySelectorAll(".tab-button").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    document
-      .querySelectorAll(".tab-button")
-      .forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-
-    const tab = btn.dataset.tab;
-
-    document
-      .querySelectorAll(".tab-content")
-      .forEach((el) => el.classList.remove("active"));
-
-    const target = document.querySelector(`.tab-content[data-tab="${tab}"]`);
-    if (target) target.classList.add("active");
-  });
-});
-
-/* ---------------- LOGOUT ---------------- */
-
-function handleLogout() {
-  setToken(null);
-  currentClientId = null;
-  clients = {};
-  clientsListEl.innerHTML = "";
-  clientForm.classList.remove("active");
-  emptyState.style.display = "block";
-  setView(false);
-}
-
-/* ---------------- INIT ---------------- */
-
-loginBtn.addEventListener("click", handleLogin);
-passwordInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") handleLogin();
-});
-
-logoutBtn.addEventListener("click", handleLogout);
-
-clientForm.addEventListener("submit", handleSaveClient);
-deleteClientBtn.addEventListener("click", handleDeleteClient);
-addClientBtn.addEventListener("click", handleAddClient);
-
-(async function init() {
-  const t = getToken();
-  if (!t) {
-    setView(false);
-    return;
-  }
-  try {
-    await loadClients();
-    setView(true);
-  } catch (err) {
-    setToken(null);
-    setView(false);
-  }
-})();
-
-
+      botBubbleText: document.getElementById("theme
