@@ -12,6 +12,15 @@ h1, h2, h3 {
   font-weight: 600;
 }
 
+h3 {
+  margin-top: 28px;
+  margin-bottom: 12px;
+  font-size: 15px;
+  color: #cbd5e1;
+  border-left: 3px solid #6366f1;
+  padding-left: 10px;
+}
+
 input, select, textarea, button {
   font-family: inherit;
   font-size: 14px;
@@ -21,6 +30,21 @@ input, select, textarea, button {
   color: #e5e7eb;
   border-radius: 6px;
   padding: 6px 10px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+textarea.json-field {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  background: #111827;
+  border: 1px solid #334155;
+  padding: 10px;
+  border-radius: 8px;
 }
 
 input[type="color"] {
@@ -176,6 +200,7 @@ button.danger-outline {
 
 .client-form {
   margin-top: 10px;
+  max-width: 1100px;
 }
 
 .form-header {
@@ -214,6 +239,16 @@ button.danger-outline {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 16px;
+}
+
+/* ---------------- SECTION BOXES ---------------- */
+
+h3 + .grid.two,
+h3 + .grid.three,
+h3 + .field,
+h3 + textarea,
+h3 + input {
+  margin-top: 10px;
 }
 
 /* ---------------- TABS ---------------- */
@@ -331,6 +366,3 @@ button.danger-outline {
   height: 100%;
   border: none;
 }
-
-
-
