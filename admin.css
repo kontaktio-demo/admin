@@ -1,8 +1,14 @@
-/* ---------------- BASE ---------------- */
+/* =========================
+   BASE
+========================= */
+
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   background: #0f172a;
   color: #e5e7eb;
 }
@@ -21,7 +27,14 @@ h3 {
   padding-left: 10px;
 }
 
-input, select, textarea, button {
+/* =========================
+   INPUTS
+========================= */
+
+input,
+select,
+textarea,
+button {
   font-family: inherit;
   font-size: 14px;
   border: none;
@@ -37,7 +50,9 @@ textarea {
   min-height: 80px;
 }
 
-textarea.json-field {
+textarea.json-field,
+textarea#dark-mode-theme,
+textarea#lead-form-fields {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 13px;
   line-height: 1.4;
@@ -56,10 +71,13 @@ button {
   cursor: pointer;
 }
 
+/* =========================
+   BUTTONS
+========================= */
+
 button.primary {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
-  border: none;
   padding: 8px 16px;
   border-radius: 8px;
 }
@@ -80,6 +98,10 @@ button.danger-outline {
   border-radius: 6px;
 }
 
+/* =========================
+   TEXT
+========================= */
+
 .error {
   color: #f87171;
   font-size: 13px;
@@ -91,7 +113,9 @@ button.danger-outline {
   color: #94a3b8;
 }
 
-/* ---------------- LAYOUT ---------------- */
+/* =========================
+   VIEWS
+========================= */
 
 .view {
   display: none;
@@ -101,6 +125,41 @@ button.danger-outline {
 .view.active {
   display: block;
 }
+
+/* =========================
+   LOGIN
+========================= */
+
+#login-view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+#login-view .card {
+  background: #020617;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 32px;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+
+#login-view h1 {
+  margin-bottom: 6px;
+}
+
+#login-view .subtitle {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 20px;
+}
+
+/* =========================
+   TOPBAR
+========================= */
 
 .topbar {
   display: flex;
@@ -116,9 +175,13 @@ button.danger-outline {
   color: #94a3b8;
 }
 
+/* =========================
+   LAYOUT
+========================= */
+
 .layout {
   display: flex;
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - 72px);
 }
 
 .sidebar {
@@ -148,6 +211,10 @@ button.danger-outline {
   height: 28px;
   padding: 0;
 }
+
+/* =========================
+   CLIENT LIST
+========================= */
 
 #clients-list {
   list-style: none;
@@ -183,11 +250,14 @@ button.danger-outline {
   color: #94a3b8;
 }
 
-/* ---------------- CONTENT ---------------- */
+/* =========================
+   CONTENT
+========================= */
 
 .content {
   flex: 1;
   padding: 20px;
+  overflow-x: hidden;
 }
 
 .empty {
@@ -196,7 +266,9 @@ button.danger-outline {
   margin-top: 20px;
 }
 
-/* ---------------- FORM ---------------- */
+/* =========================
+   FORM
+========================= */
 
 .client-form {
   margin-top: 10px;
@@ -229,6 +301,10 @@ button.danger-outline {
   color: #cbd5e1;
 }
 
+/* =========================
+   GRID
+========================= */
+
 .grid.two {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -241,17 +317,9 @@ button.danger-outline {
   gap: 16px;
 }
 
-/* ---------------- SECTION BOXES ---------------- */
-
-h3 + .grid.two,
-h3 + .grid.three,
-h3 + .field,
-h3 + textarea,
-h3 + input {
-  margin-top: 10px;
-}
-
-/* ---------------- TABS ---------------- */
+/* =========================
+   TABS
+========================= */
 
 .tabs {
   display: flex;
@@ -283,7 +351,9 @@ h3 + input {
   display: block;
 }
 
-/* ---------------- STATS ---------------- */
+/* =========================
+   STATS
+========================= */
 
 .stats-grid {
   display: grid;
@@ -309,10 +379,11 @@ h3 + input {
 .stat-card p {
   font-size: 20px;
   margin: 0;
-  color: #e5e7eb;
 }
 
-/* ---------------- LOGS ---------------- */
+/* =========================
+   LOGS
+========================= */
 
 .logs-list {
   display: flex;
@@ -346,11 +417,12 @@ h3 + input {
 
 .log-content {
   font-size: 13px;
-  color: #e5e7eb;
   white-space: pre-wrap;
 }
 
-/* ---------------- PREVIEW ---------------- */
+/* =========================
+   PREVIEW
+========================= */
 
 .preview-container {
   margin-top: 12px;
@@ -365,4 +437,20 @@ h3 + input {
   width: 100%;
   height: 100%;
   border: none;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #334155;
+  }
 }
