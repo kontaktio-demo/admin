@@ -2,8 +2,9 @@
 <html lang="pl">
   <head>
     <meta charset="UTF-8" />
-    <title>Kontaktio Preview</title>
+    <title>Kontaktio – Podgląd widgetu</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <style>
       html, body {
         margin: 0;
@@ -12,29 +13,54 @@
         background: #020617;
         color: #e5e7eb;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        overflow: hidden;
+      }
+
+      .error {
+        padding: 40px;
+        text-align: center;
+        font-size: 18px;
+        color: #f87171;
       }
     </style>
   </head>
+
   <body>
     <script>
       (function () {
         const params = new URLSearchParams(window.location.search);
-        const client = params.get("client") || "demo";
+        const client = params.get("client");
 
-        const s = document.createElement("script");
-        s.src = "https://cdn.jsdelivr.net/gh/kontaktio-demo/kontaktio@57952b9/kontaktio.js";
+        // ============================
+        // Walidacja clientId
+        // ============================
+        if (!client) {
+          document.body.innerHTML =
+            '<div class="error">Brak parametru <b>?client=</b></div>';
+          return;
+        }
 
-        s.setAttribute("data-client", client);
-        s.setAttribute("data-kontaktio", "1");
+        // ============================
+        // Ładowanie kontaktio.js
+        // ============================
+        const script = document.createElement("script");
 
-        // NOWE — backend URL
-        s.setAttribute("data-backend", "https://chatbot-backend-x2cy.onrender.com");
+        // Najnowsza wersja kontaktio.js z GitHuba
+        script.src =
+          "https://cdn.jsdelivr.net/gh/kontaktio-demo/kontaktio/kontaktio.js";
 
-        // auto-open teraz jest w bazie, ale możesz zostawić do testów
-        s.setAttribute("data-auto-open", "true");
-        s.setAttribute("data-auto-open-delay", "200");
+        // Atrybuty wymagane przez widget
+        script.setAttribute("data-kontaktio", "1");
+        script.setAttribute("data-client", client);
 
-        document.body.appendChild(s);
+        // Backend dynamicznie — działa lokalnie i na Renderze
+        script.setAttribute("data-backend", window.location.origin);
+
+        // Opcjonalne auto-open (do testów)
+        script.setAttribute("data-auto-open", "true");
+        script.setAttribute("data-auto-open-delay", "300");
+
+        document.body.appendChild(script);
       })();
     </script>
   </body>
