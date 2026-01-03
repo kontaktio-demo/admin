@@ -82,6 +82,8 @@ async function api(path, options = {}) {
   });
 
   if (res.status === 401 || res.status === 403) {
+    setToken(null);
+    setView(false);
     throw new Error("unauthorized");
   }
 
@@ -191,6 +193,7 @@ logoutBtn.addEventListener("click", () => {
     setView(false);
   }
 })();
+
 /* ============================================
    RENDEROWANIE LISTY KLIENTÓW
 ============================================ */
@@ -248,7 +251,7 @@ function showClientForm(id) {
 ============================================ */
 
 function updateWidgetPreview(clientId) {
-  previewIframe.src = "preview.html?client=" + encodeURIComponent(clientId);
+  previewIframe.src = API_BASE + "/admin/preview.html?client=" + encodeURIComponent(clientId);
 }
 
 /* ============================================
@@ -338,6 +341,7 @@ document.querySelectorAll(".tab-button").forEach((btn) => {
     if (target) target.classList.add("active");
   });
 });
+
 /* ============================================
    WYPEŁNIANIE FORMULARZA KLIENTA
 ============================================ */
@@ -493,6 +497,7 @@ function fillClientForm(id) {
   document.getElementById("handoff-message").value =
     cfg.handoff_message || "";
 }
+
 /* ============================================
    ZBIERANIE DANYCH Z FORMULARZA
 ============================================ */
@@ -517,222 +522,3 @@ function getClientFormData() {
     temperature: parseFloat(document.getElementById("temperature").value),
     maxTokens: parseInt(document.getElementById("max-tokens").value, 10),
     top_p: parseFloat(document.getElementById("top-p").value),
-    presence_penalty: parseFloat(document.getElementById("presence-penalty").value),
-    frequency_penalty: parseFloat(document.getElementById("frequency-penalty").value),
-    context_limit: parseInt(document.getElementById("context-limit").value, 10),
-
-    system_prompt: document.getElementById("system-prompt").value,
-    knowledge: document.getElementById("knowledge").value,
-    rules: document.getElementById("rules").value,
-
-    /* ---------------- BEHAVIOR ---------------- */
-    welcome_message: document.getElementById("welcome-message").value.trim(),
-    welcome_hint: document.getElementById("welcome-hint").value.trim(),
-    launcher_icon: document.getElementById("launcher-icon").value.trim(),
-
-    auto_open_enabled:
-      document.getElementById("auto-open-enabled").value.trim() === "true",
-    auto_open_delay: parseInt(document.getElementById("auto-open-delay").value, 10),
-
-    quick_replies: document
-      .getElementById("quick-replies")
-      .value.split(",")
-      .map((q) => q.trim())
-      .filter((q) => q.length > 0),
-
-    /* ---------------- THEME ---------------- */
-    theme: {
-      headerBg: document.getElementById("theme-header-bg").value,
-      headerText: document.getElementById("theme-header-text").value,
-      userBubbleBg: document.getElementById("theme-user-bubble-bg").value,
-      userBubbleText: document.getElementById("theme-user-bubble-text").value,
-      botBubbleBg: document.getElementById("theme-bot-bubble-bg").value,
-      botBubbleText: document.getElementById("theme-bot-bubble-text").value,
-      widgetBg: document.getElementById("theme-widget-bg").value,
-      inputBg: document.getElementById("theme-input-bg").value,
-      inputText: document.getElementById("theme-input-text").value,
-      buttonBg: document.getElementById("theme-button-bg").value,
-      buttonText: document.getElementById("theme-button-text").value,
-      radius: parseInt(document.getElementById("theme-radius").value, 10),
-      position: document.getElementById("theme-position").value
-    },
-
-    /* ---------------- UI ---------------- */
-    launcher_size: parseInt(document.getElementById("launcher-size").value, 10),
-    header_height: parseInt(document.getElementById("header-height").value, 10),
-    input_height: parseInt(document.getElementById("input-height").value, 10),
-    bubble_radius: parseInt(document.getElementById("bubble-radius").value, 10),
-
-    /* ---------------- POSITIONING ---------------- */
-    offset_x: parseInt(document.getElementById("offset-x").value, 10),
-    offset_y: parseInt(document.getElementById("offset-y").value, 10),
-
-    /* ---------------- DARK MODE ---------------- */
-    dark_mode_enabled:
-      document.getElementById("dark-mode-enabled").value.trim() === "true",
-
-    dark_mode_theme: (() => {
-      const raw = document.getElementById("dark-mode-theme").value.trim();
-      if (!raw) return null;
-      try {
-        return JSON.parse(raw);
-      } catch {
-        return null;
-      }
-    })(),
-
-    /* ---------------- BUSINESS LINKS ---------------- */
-    website: document.getElementById("website").value.trim(),
-    facebook_url: document.getElementById("facebook-url").value.trim(),
-    instagram_url: document.getElementById("instagram-url").value.trim(),
-    google_maps_url: document.getElementById("google-maps-url").value.trim(),
-
-    /* ---------------- LEAD FORM ---------------- */
-    lead_form_enabled:
-      document.getElementById("lead-form-enabled").value.trim() === "true",
-
-    lead_form_title: document.getElementById("lead-form-title").value.trim(),
-    lead_form_success_message: document
-      .getElementById("lead-form-success-message")
-      .value.trim(),
-
-    lead_form_fields: (() => {
-      const raw = document.getElementById("lead-form-fields").value.trim();
-      if (!raw) return [];
-      try {
-        return JSON.parse(raw);
-      } catch {
-        return [];
-      }
-    })(),
-
-    /* ---------------- ROUTING ---------------- */
-    forward_to_email: document.getElementById("forward-to-email").value.trim(),
-    webhook_url: document.getElementById("webhook-url").value.trim(),
-    zapier_url: document.getElementById("zapier-url").value.trim(),
-    make_url: document.getElementById("make-url").value.trim(),
-
-    /* ---------------- LOGIC ---------------- */
-    blocked_keywords: document
-      .getElementById("blocked-keywords")
-      .value.split(",")
-      .map((x) => x.trim())
-      .filter((x) => x.length > 0),
-
-    allowed_keywords: document
-      .getElementById("allowed-keywords")
-      .value.split(",")
-      .map((x) => x.trim())
-      .filter((x) => x.length > 0),
-
-    fallback_message: document.getElementById("fallback-message").value.trim(),
-    handoff_message: document.getElementById("handoff-message").value.trim()
-  };
-}
-/* ============================================
-   ZAPIS KLIENTA
-============================================ */
-
-async function handleSaveClient(e) {
-  e.preventDefault();
-  if (!currentClientId) return;
-
-  saveStatus.textContent = "Zapisywanie...";
-
-  const payload = getClientFormData();
-
-  try {
-    const data = await api(`/admin/clients/${currentClientId}`, {
-      method: "PUT",
-      body: payload
-    });
-
-    clients[currentClientId] = data.client;
-    renderClientsList();
-    saveStatus.textContent = "Zapisano.";
-
-    updateWidgetPreview(currentClientId);
-
-    setTimeout(() => {
-      saveStatus.textContent = "";
-    }, 2000);
-  } catch (err) {
-    saveStatus.textContent = "Błąd zapisu: " + err.message;
-  }
-}
-
-/* ============================================
-   USUWANIE KLIENTA
-============================================ */
-
-async function handleDeleteClient() {
-  if (!currentClientId) return;
-
-  if (!confirm(`Na pewno chcesz usunąć klienta "${currentClientId}"?`)) return;
-
-  try {
-    await api(`/admin/clients/${currentClientId}`, { method: "DELETE" });
-
-    delete clients[currentClientId];
-    currentClientId = null;
-
-    renderClientsList();
-    clientForm.classList.remove("active");
-    emptyState.style.display = "block";
-  } catch (err) {
-    alert("Błąd usuwania: " + err.message);
-  }
-}
-
-/* ============================================
-   DODAWANIE KLIENTA
-============================================ */
-
-async function handleAddClient() {
-  const id = prompt("Podaj ID nowego klienta:");
-  if (!id) return;
-
-  try {
-    const data = await api("/admin/clients", {
-      method: "POST",
-      body: { id }
-    });
-
-    clients[id] = data.client;
-    currentClientId = id;
-
-    renderClientsList();
-    showClientForm(id);
-  } catch (err) {
-    alert("Błąd dodawania: " + err.message);
-  }
-}
-
-/* ============================================
-   LOGOUT
-============================================ */
-
-function handleLogout() {
-  setToken(null);
-  currentClientId = null;
-  clients = {};
-
-  clientsListEl.innerHTML = "";
-  clientForm.classList.remove("active");
-  emptyState.style.display = "block";
-
-  setView(false);
-}
-
-/* ============================================
-   EVENT LISTENERS
-============================================ */
-
-clientForm.addEventListener("submit", handleSaveClient);
-deleteClientBtn.addEventListener("click", handleDeleteClient);
-addClientBtn.addEventListener("click", handleAddClient);
-logoutBtn.addEventListener("click", handleLogout);
-
-/* ============================================
-   KONIEC — PANEL GOTOWY
-============================================ */
