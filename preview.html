@@ -22,11 +22,18 @@
         const client = params.get("client") || "demo";
 
         const s = document.createElement("script");
-        s.src = "https://cdn.jsdelivr.net/gh/kontaktio-demo/kontaktio@d0b5df3/kontaktio.js";
+        s.src = "https://cdn.jsdelivr.net/gh/kontaktio-demo/kontaktio@8f8331d/kontaktio.js";
+
         s.setAttribute("data-client", client);
         s.setAttribute("data-kontaktio", "1");
+
+        // NOWE — backend URL
+        s.setAttribute("data-backend", "https://chatbot-backend-x2cy.onrender.com");
+
+        // auto-open teraz jest w bazie, ale możesz zostawić do testów
         s.setAttribute("data-auto-open", "true");
         s.setAttribute("data-auto-open-delay", "200");
+
         document.body.appendChild(s);
       })();
     </script>
