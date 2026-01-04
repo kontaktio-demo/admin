@@ -23,12 +23,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logout-btn");
 
   const clientsListEl = document.getElementById("clients-list");
-  const addClientBtn = document.getElementById("add-client-btn");
   const emptyState = document.getElementById("empty-state");
 
   const clientForm = document.getElementById("client-form");
   const clientIdLabel = document.getElementById("client-id-label");
-  const deleteClientBtn = document.getElementById("delete-client-btn");
   const saveStatus = document.getElementById("save-status");
 
   const statsContent = document.getElementById("stats-content");
@@ -39,19 +37,30 @@ document.addEventListener("DOMContentLoaded", () => {
      STATE
   ============================ */
 
-  let token = localStorage.getItem("kontaktio-admin-token");
+  let token = null;
   let clients = {};
   let currentClientId = null;
 
   /* ============================
-     HELPERS
+     TOKEN
   ============================ */
+
+  function getToken() {
+    if (token) return token;
+    const t = localStorage.getItem("kontaktio-admin-token");
+    if (t) token = t;
+    return token;
+  }
 
   function setToken(t) {
     token = t;
     if (t) localStorage.setItem("kontaktio-admin-token", t);
     else localStorage.removeItem("kontaktio-admin-token");
   }
+
+  /* ============================
+     VIEW
+  ============================ */
 
   function setView(loggedIn) {
     if (loggedIn) {
@@ -63,9 +72,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  /* ============================
+     API
+  ============================ */
+
   async function api(path, options = {}) {
+    const t = getToken();
     const headers = options.headers || {};
-    if (token) headers["Authorization"] = "Bearer " + token;
+
+    if (t) headers["Authorization"] = "Bearer " + t;
     if (!(options.body instanceof FormData)) {
       headers["Content-Type"] = "application/json";
     }
@@ -98,6 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function handleLogin() {
     loginError.textContent = "";
     const password = passwordInput.value.trim();
+
     if (!password) {
       loginError.textContent = "Podaj hasło administratora.";
       return;
@@ -111,6 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const data = await res.json();
+
       if (!res.ok || !data.token) {
         loginError.textContent = data.error || "Nieprawidłowe hasło.";
         return;
@@ -121,7 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
       await loadClients();
       setView(true);
 
-    } catch (e) {
+    } catch (err) {
       loginError.textContent = "Błąd połączenia z backendem.";
     }
   }
@@ -194,7 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ============================
-     STATS & LOGS
+     STATS
   ============================ */
 
   async function loadStats(id) {
@@ -211,6 +228,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  /* ============================
+     LOGS
+  ============================ */
+
   async function loadLogs(id) {
     logsContent.innerHTML = "Ładowanie...";
     try {
@@ -219,6 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
         logsContent.innerHTML = "<p>Brak logów.</p>";
         return;
       }
+
       logsContent.innerHTML = logs.map(l => `
         <div class="log-entry ${l.role}">
           <div class="log-meta">
@@ -278,7 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       clients[currentClientId] = res.client;
       saveStatus.textContent = "Zapisano.";
-    } catch (e) {
+    } catch {
       saveStatus.textContent = "Błąd zapisu.";
     }
   }
@@ -309,10 +331,11 @@ document.addEventListener("DOMContentLoaded", () => {
      INIT
   ============================ */
 
-  if (token) {
+  if (getToken()) {
     loadClients().then(() => setView(true)).catch(() => setView(false));
   } else {
     setView(false);
   }
 
 });
+
