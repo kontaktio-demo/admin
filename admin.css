@@ -1,7 +1,7 @@
 :root{
   --bg:#0b1220;
   --panel:#0f172a;
-  --panel2:#0b1327;
+  --panel2:#0b1326;
   --card:#0a1020;
   --muted:#93a4bd;
   --text:#e5e7eb;
@@ -406,4 +406,5 @@ textarea.mono{ font-family: var(--mono); font-size: 12.5px; line-height: 1.35; }
   border-radius: 8px;
   background: rgba(2,6,23,.35);
 }
+
 
