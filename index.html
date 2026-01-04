@@ -19,7 +19,7 @@
 
     <label class="field">
       <span>Hasło administratora</span>
-      <input type="password" id="admin-password" />
+      <input type="password" id="admin-password" autocomplete="current-password" />
     </label>
 
     <button id="login-btn" class="primary">Zaloguj</button>
@@ -32,33 +32,113 @@
 <!-- ========================= -->
 <div id="panel-view" class="view">
 
+  <!-- TOPBAR -->
   <header class="topbar">
-    <h1>PANEL DZIAŁA</h1>
-    <button id="logout-btn" class="ghost">Wyloguj</button>
+    <div>
+      <h1>Kontaktio Admin</h1>
+      <p class="subtitle">Zarządzanie klientami i konfiguracją AI</p>
+    </div>
+    <div class="topbar-right" style="display:flex;align-items:center;gap:12px;">
+      <span class="muted">Zalogowano</span>
+      <button id="logout-btn" class="ghost">Wyloguj</button>
+    </div>
   </header>
 
-  <main style="padding:20px">
-    <p>Jeśli to widzisz — panel jest widoczny.</p>
+  <!-- MAIN LAYOUT -->
+  <main class="layout">
 
-    <ul id="clients-list"></ul>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Klienci</h2>
+      </div>
+      <ul id="clients-list"></ul>
+    </aside>
 
-    <div id="empty-state" class="empty">
-      Brak klientów
-    </div>
+    <!-- CONTENT -->
+    <section class="content">
 
-    <form id="client-form" class="client-form">
-      <h2 id="client-id-label">Klient</h2>
-      <button type="submit" class="primary">Zapisz</button>
-      <span id="save-status" class="muted"></span>
-    </form>
+      <!-- TABS -->
+      <div class="tabs">
+        <button type="button" class="tab-button active" data-tab="settings">Ustawienia</button>
+        <button type="button" class="tab-button" data-tab="stats">Statystyki</button>
+        <button type="button" class="tab-button" data-tab="logs">Logi</button>
+        <button type="button" class="tab-button" data-tab="preview">Podgląd</button>
+      </div>
 
-    <div id="stats-content"></div>
-    <div id="logs-content"></div>
+      <!-- EMPTY STATE -->
+      <div id="empty-state" class="empty">Wybierz klienta z listy po lewej</div>
 
-    <iframe id="widget-preview" style="width:100%;height:300px;border:1px solid #333"></iframe>
+      <!-- FORM -->
+      <form id="client-form" class="client-form tab-content active" data-tab="settings" style="display:none;">
+        <div class="form-header">
+          <h2 id="client-id-label">Klient</h2>
+          <span id="save-status" class="muted"></span>
+        </div>
+
+        <div class="grid two">
+          <div class="field">
+            <span>Nazwa firmy</span>
+            <input type="text" id="company-name" />
+          </div>
+          <div class="field">
+            <span>Status</span>
+            <select id="client-status">
+              <option value="active">active</option>
+              <option value="disabled">disabled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <span>System prompt</span>
+          <textarea id="system-prompt" rows="4"></textarea>
+        </div>
+
+        <div class="field">
+          <span>Knowledge</span>
+          <textarea id="knowledge" rows="6"></textarea>
+        </div>
+
+        <div class="field">
+          <span>Rules</span>
+          <textarea id="rules" rows="4"></textarea>
+        </div>
+
+        <div class="form-footer">
+          <button type="submit" class="primary">Zapisz zmiany</button>
+        </div>
+      </form>
+
+      <!-- STATS -->
+      <div class="tab-content" data-tab="stats">
+        <h2>Statystyki</h2>
+        <div id="stats-content" class="stats-grid"></div>
+      </div>
+
+      <!-- LOGS -->
+      <div class="tab-content" data-tab="logs">
+        <h2>Logi rozmów</h2>
+        <div id="logs-content" class="logs-list"></div>
+      </div>
+
+      <!-- PREVIEW -->
+      <div class="tab-content" data-tab="preview">
+        <h2>Podgląd widgetu</h2>
+        <div class="preview-container">
+          <iframe id="widget-preview"></iframe>
+        </div>
+      </div>
+
+    </section>
   </main>
-
 </div>
+
+<!-- FIX: wymuszenie widoczności formularza po wyborze klienta -->
+<style>
+  #client-form.active { display: block !important; }
+  #client-form:not(.active) { display: none !important; }
+</style>
 
 <script src="admin.js"></script>
 </body>
