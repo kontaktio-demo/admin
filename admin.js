@@ -32,7 +32,7 @@ const DEFAULTS = {
     botBubbleBg: "#020617",
     userBubbleBg: "#0f172a",
     botBubbleText: "#94a3b8",
-    userBubbleText: "#e5e7eb"
+    userBubbleText: "#e5e7ea"
   },
   knowledge: "",
   rules: "",
@@ -1524,4 +1524,5 @@ function closeModal() {
 function confirmModal({ title, body, okText = "OK", cancelText = "Anuluj", danger = false, onOk }) {
   openModal({ title, body, okText, cancelText, danger, onOk });
 }
+
 
