@@ -454,3 +454,13 @@ button.danger-outline {
     border-bottom: 1px solid #334155;
   }
 }
+#panel-view.view.active {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
