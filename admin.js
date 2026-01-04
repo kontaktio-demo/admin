@@ -95,14 +95,18 @@ document.addEventListener("DOMContentLoaded", () => {
         : undefined
     });
 
+    const data = await res.json().catch(() => ({}));
+
     if (res.status === 401 || res.status === 403) {
       setToken(null);
       setView(false);
       throw new Error("unauthorized");
     }
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || "Błąd serwera");
+    if (!res.ok) {
+      throw new Error(data.error || "Błąd serwera");
+    }
+
     return data;
   }
 
@@ -135,7 +139,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       setToken(data.token);
       passwordInput.value = "";
-      await loadClients();
+
+      // 🔥 NIE BLOKUJEMY LOGOWANIA NA BŁĘDZIE CLIENTS
+      try {
+        await loadClients();
+      } catch (e) {
+        console.warn("Zalogowano, ale nie udało się pobrać klientów");
+      }
+
       setView(true);
 
     } catch (err) {
@@ -332,10 +343,11 @@ document.addEventListener("DOMContentLoaded", () => {
   ============================ */
 
   if (getToken()) {
-    loadClients().then(() => setView(true)).catch(() => setView(false));
+    loadClients()
+      .then(() => setView(true))
+      .catch(() => setView(true)); // 🔥 NIE BLOKUJEMY PANELU
   } else {
     setView(false);
   }
 
 });
-
