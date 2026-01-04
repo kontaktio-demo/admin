@@ -1,146 +1,210 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Kontaktio Admin</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="admin.css" />
 </head>
 
 <body>
+  <div id="toast" class="toast hidden"></div>
 
-<!-- ========================= -->
-<!-- LOGIN VIEW -->
-<!-- ========================= -->
-<div id="login-view" class="view active">
-  <div class="card">
-    <h1>Kontaktio Admin</h1>
-    <p class="subtitle">Panel zarządzania asystentami</p>
-
-    <label class="field">
-      <span>Hasło administratora</span>
-      <input type="password" id="admin-password" autocomplete="current-password" />
-    </label>
-
-    <button id="login-btn" class="primary">Zaloguj</button>
-    <p id="login-error" class="error"></p>
-  </div>
-</div>
-
-<!-- ========================= -->
-<!-- PANEL VIEW -->
-<!-- ========================= -->
-<div id="panel-view" class="view">
-
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <div>
-      <h1>Kontaktio Admin</h1>
-      <p class="subtitle">Zarządzanie klientami i konfiguracją AI</p>
-    </div>
-    <div class="topbar-right" style="display:flex;align-items:center;gap:12px;">
-      <span class="muted">Zalogowano</span>
-      <button id="logout-btn" class="ghost">Wyloguj</button>
-    </div>
-  </header>
-
-  <!-- MAIN LAYOUT -->
-  <main class="layout">
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <h2>Klienci</h2>
+  <div id="loginView" class="login">
+    <div class="loginCard">
+      <div class="brand">
+        <div class="brandDot"></div>
+        <div>
+          <div class="brandTitle">Kontaktio Admin</div>
+          <div class="brandSub">Panel prywatny (Render + Supabase)</div>
+        </div>
       </div>
-      <ul id="clients-list"></ul>
+
+      <div class="field">
+        <label for="apiBase">API base</label>
+        <input id="apiBase" type="url" placeholder="https://twoj-backend.onrender.com" />
+        <div class="help">Zapisuje się lokalnie w przeglądarce.</div>
+      </div>
+
+      <div class="field">
+        <label for="password">Hasło admina</label>
+        <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+
+      <div class="row">
+        <button id="btnLogin" class="btn primary">Zaloguj</button>
+        <button id="btnClearAuth" class="btn ghost" title="Czyści token i ustawienia">Reset</button>
+      </div>
+
+      <div id="loginError" class="error"></div>
+      <div class="footnote">Token JWT jest przechowywany lokalnie (localStorage).</div>
+    </div>
+  </div>
+
+  <div id="appView" class="app hidden">
+    <aside class="sidebar">
+      <div class="sidebarTop">
+        <div class="sidebarTitle">Klienci</div>
+
+        <div class="sidebarActions">
+          <button id="btnReload" class="btn small ghost">Odśwież</button>
+          <button id="btnCreate" class="btn small primary">+ Dodaj</button>
+        </div>
+
+        <div class="search">
+          <input id="clientSearch" type="text" placeholder="Szukaj po ID / nazwie..." />
+        </div>
+      </div>
+
+      <div id="clientList" class="clientList"></div>
+
+      <div class="sidebarBottom">
+        <div class="mini">
+          <div class="miniLabel">Zalogowano</div>
+          <div id="apiBaseLabel" class="miniValue">—</div>
+        </div>
+        <button id="btnLogout" class="btn small ghost">Wyloguj</button>
+      </div>
     </aside>
 
-    <!-- CONTENT -->
-    <section class="content">
-
-      <!-- TABS -->
-      <div class="tabs">
-        <button type="button" class="tab-button active" data-tab="settings">Ustawienia</button>
-        <button type="button" class="tab-button" data-tab="stats">Statystyki</button>
-        <button type="button" class="tab-button" data-tab="logs">Logi</button>
-        <button type="button" class="tab-button" data-tab="preview">Podgląd</button>
-      </div>
-
-      <!-- EMPTY STATE -->
-      <div id="empty-state" class="empty">Wybierz klienta z listy po lewej</div>
-
-      <!-- FORM -->
-      <form id="client-form" class="client-form tab-content active" data-tab="settings" style="display:none;">
-        <div class="form-header">
-          <h2 id="client-id-label">Klient</h2>
-          <span id="save-status" class="muted"></span>
-        </div>
-
-        <div class="grid two">
-          <div class="field">
-            <span>Nazwa firmy</span>
-            <input type="text" id="company-name" />
+    <main class="main">
+      <header class="topbar">
+        <div class="topLeft">
+          <div class="crumb">
+            <span class="muted">Klient</span>
+            <span id="currentClientId" class="crumbId">—</span>
           </div>
-          <div class="field">
-            <span>Status</span>
-            <select id="client-status">
-              <option value="active">active</option>
-              <option value="disabled">disabled</option>
-            </select>
+          <div id="dirtyBadge" class="badge hidden">Niezapisane zmiany</div>
+        </div>
+
+        <div class="topRight">
+          <button id="btnPreview" class="btn ghost">Podgląd</button>
+          <button id="btnDuplicate" class="btn ghost">Duplikuj</button>
+          <button id="btnDelete" class="btn danger">Usuń</button>
+          <button id="btnSave" class="btn primary">Zapisz</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <section class="panel">
+          <div class="panelHeader">
+            <div class="panelTitle">Konfiguracja</div>
+            <div class="panelHint">Edytujesz obiekt zgodny z `mapClientRow()` w backendzie.</div>
           </div>
-        </div>
 
-        <div class="field">
-          <span>System prompt</span>
-          <textarea id="system-prompt" rows="4"></textarea>
-        </div>
+          <div class="tabs" id="tabs">
+            <button class="tab active" data-tab="tab-status">Status</button>
+            <button class="tab" data-tab="tab-company">Firma</button>
+            <button class="tab" data-tab="tab-theme">Wygląd</button>
+            <button class="tab" data-tab="tab-ai">AI</button>
+            <button class="tab" data-tab="tab-behavior">Zachowanie</button>
+            <button class="tab" data-tab="tab-ui">UI</button>
+            <button class="tab" data-tab="tab-business">Kontakt</button>
+            <button class="tab" data-tab="tab-lead">Lead form</button>
+            <button class="tab" data-tab="tab-routing">Routing</button>
+            <button class="tab" data-tab="tab-logic">Logika</button>
+            <button class="tab" data-tab="tab-stats">Statystyki</button>
+            <button class="tab" data-tab="tab-logs">Logi</button>
+            <button class="tab" data-tab="tab-json">JSON</button>
+          </div>
 
-        <div class="field">
-          <span>Knowledge</span>
-          <textarea id="knowledge" rows="6"></textarea>
-        </div>
+          <div class="tabBody">
+            <div id="tab-status" class="tabPane active"></div>
+            <div id="tab-company" class="tabPane"></div>
+            <div id="tab-theme" class="tabPane"></div>
+            <div id="tab-ai" class="tabPane"></div>
+            <div id="tab-behavior" class="tabPane"></div>
+            <div id="tab-ui" class="tabPane"></div>
+            <div id="tab-business" class="tabPane"></div>
+            <div id="tab-lead" class="tabPane"></div>
+            <div id="tab-routing" class="tabPane"></div>
+            <div id="tab-logic" class="tabPane"></div>
 
-        <div class="field">
-          <span>Rules</span>
-          <textarea id="rules" rows="4"></textarea>
-        </div>
+            <div id="tab-stats" class="tabPane">
+              <div class="grid2">
+                <div class="card">
+                  <div class="cardTitle">Podsumowanie</div>
+                  <div id="statsBox" class="stats"></div>
+                  <div class="row">
+                    <button id="btnReloadStats" class="btn small ghost">Odśwież statystyki</button>
+                  </div>
+                </div>
 
-        <div class="form-footer">
-          <button type="submit" class="primary">Zapisz zmiany</button>
-        </div>
-      </form>
+                <div class="card">
+                  <div class="cardTitle">Podgląd widgetu</div>
+                  <div class="help">Podgląd działa w iframe (preview.html) i bierze `clientId` z aktywnego rekordu.</div>
+                  <div class="previewFrameWrap">
+                    <iframe id="previewFrame" title="Kontaktio preview" src="about:blank"></iframe>
+                  </div>
+                  <div class="row">
+                    <button id="btnOpenPreviewTab" class="btn small ghost">Otwórz w nowej karcie</button>
+                    <button id="btnReloadPreview" class="btn small ghost">Przeładuj</button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-      <!-- STATS -->
-      <div class="tab-content" data-tab="stats">
-        <h2>Statystyki</h2>
-        <div id="stats-content" class="stats-grid"></div>
+            <div id="tab-logs" class="tabPane">
+              <div class="card">
+                <div class="cardTitle">Logi rozmów</div>
+                <div class="row">
+                  <div class="field inline">
+                    <label for="logsLimit">Limit</label>
+                    <input id="logsLimit" type="number" min="1" max="500" value="80" />
+                  </div>
+                  <button id="btnReloadLogs" class="btn small ghost">Pobierz</button>
+                </div>
+                <div id="logsBox" class="logs"></div>
+              </div>
+            </div>
+
+            <div id="tab-json" class="tabPane">
+              <div class="grid2">
+                <div class="card">
+                  <div class="cardTitle">Eksport JSON</div>
+                  <div class="help">To jest obiekt, który leci do `PUT /admin/clients/:id`.</div>
+                  <textarea id="jsonExport" class="mono big" spellcheck="false"></textarea>
+                  <div class="row">
+                    <button id="btnCopyJson" class="btn small ghost">Kopiuj</button>
+                    <button id="btnBeautifyJson" class="btn small ghost">Format</button>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="cardTitle">Import JSON</div>
+                  <div class="help">Wklej cały obiekt klienta. Nadpisze aktualny formularz.</div>
+                  <textarea id="jsonImport" class="mono big" spellcheck="false" placeholder="{ ... }"></textarea>
+                  <div class="row">
+                    <button id="btnApplyImport" class="btn small primary">Zastosuj</button>
+                    <button id="btnClearImport" class="btn small ghost">Wyczyść</button>
+                  </div>
+                  <div class="warn">Uwaga: import nie zapisuje automatycznie do bazy — kliknij „Zapisz”.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
       </div>
+    </main>
+  </div>
 
-      <!-- LOGS -->
-      <div class="tab-content" data-tab="logs">
-        <h2>Logi rozmów</h2>
-        <div id="logs-content" class="logs-list"></div>
+  <div id="modalRoot" class="modalRoot hidden" aria-hidden="true">
+    <div class="modalOverlay"></div>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modalHead">
+        <div id="modalTitle" class="modalTitle">—</div>
+        <button id="modalClose" class="iconBtn" title="Zamknij">✕</button>
       </div>
-
-      <!-- PREVIEW -->
-      <div class="tab-content" data-tab="preview">
-        <h2>Podgląd widgetu</h2>
-        <div class="preview-container">
-          <iframe id="widget-preview"></iframe>
-        </div>
+      <div id="modalBody" class="modalBody"></div>
+      <div class="modalFoot">
+        <button id="modalCancel" class="btn ghost">Anuluj</button>
+        <button id="modalOk" class="btn primary">OK</button>
       </div>
+    </div>
+  </div>
 
-    </section>
-  </main>
-</div>
-
-<!-- FIX: wymuszenie widoczności formularza po wyborze klienta -->
-<style>
-  #client-form.active { display: block !important; }
-  #client-form:not(.active) { display: none !important; }
-</style>
-
-<script src="admin.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>
 
